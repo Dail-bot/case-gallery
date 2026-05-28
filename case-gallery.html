@@ -248,6 +248,7 @@
     display: block; max-width: 90vw; max-height: 70vh;
     pointer-events: none; -webkit-user-drag: none; user-select: none;
     -webkit-touch-callout: none;
+    transition: opacity 0.3s ease;
   }
   /* 透明拦截层 — 防止移动端长按触发保存菜单 */
   .lightbox-touch-guard {
@@ -577,14 +578,23 @@ let editMode = false;
 // =============================================
 // RENDER
 // =============================================
+// 原图路径 → 缩略图路径
+// images/身体调理/xxx.png → thumbs/身体调理/xxx.jpg
+function thumbPath(originalPath) {
+  const lastDot = originalPath.lastIndexOf('.');
+  const base = lastDot > -1 ? originalPath.substring(0, lastDot) : originalPath;
+  return base.replace('images/', 'thumbs/') + '.jpg';
+}
+
 function getCardHTML(item, sectionKey, index) {
   const cfg = sectionConfig[sectionKey];
+  const thumb = thumbPath(item.img);
   return `
     <div class="case-card" draggable="true" data-section="${sectionKey}" data-index="${index}" data-img="${encodeURI(item.img)}" data-caption="${escapeHTML(item.caption)}">
       <div class="drag-handle" title="拖拽排序">⋮⋮</div>
       <div class="card-image-wrap">
         <div class="skeleton-loader"></div>
-        <img src="" data-src="${encodeURI(item.img)}" alt="${escapeHTML(item.caption)}" loading="lazy">
+        <img src="" data-src="${encodeURI(thumb)}" alt="${escapeHTML(item.caption)}" loading="lazy">
         <div class="card-watermark-text">烁林煊</div>
       </div>
       <div class="card-caption">
@@ -716,10 +726,25 @@ function openLightbox(sectionKey, index) {
 function showLightboxImage() {
   const data = lightboxData[lightboxIndex];
   if (!data) return;
-  document.getElementById('lightboxImg').src = data.img;
+  const imgEl = document.getElementById('lightboxImg');
+  // 显示加载状态
+  imgEl.style.opacity = '0.5';
+  imgEl.src = data.img;
+  imgEl.onload = function() { imgEl.style.opacity = '1'; };
+  imgEl.onerror = function() { imgEl.style.opacity = '1'; };
   document.getElementById('lightboxCaption').textContent = data.caption;
-  // 生成文字水印
   generateWatermark();
+  // 预加载相邻图片原图
+  preloadAdjacent();
+}
+
+function preloadAdjacent() {
+  [lightboxIndex - 1, lightboxIndex + 1].forEach(i => {
+    if (i >= 0 && i < lightboxData.length && lightboxData[i]) {
+      const preload = new Image();
+      preload.src = lightboxData[i].img;
+    }
+  });
 }
 
 function generateWatermark() {
