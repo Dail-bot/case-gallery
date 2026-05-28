@@ -1312,10 +1312,36 @@ const imageObserver = new IntersectionObserver(function(entries) {
         if (skeleton) skeleton.remove();
       }
     };
-    // 加载失败
+    // 加载失败 → 回退到原图
     img.onerror = function() {
-      img.classList.add('error');
       const wrap = img.closest('.card-image-wrap');
+      const card = img.closest('.case-card');
+      
+      // 如果当前加载的是缩略图（thumbs/），回退到原图
+      const currentSrc = img.src;
+      if (currentSrc.includes('/thumbs/') && card && card.dataset.img) {
+        const originalSrc = decodeURIComponent(card.dataset.img);
+        if (currentSrc !== originalSrc) {
+          img.src = originalSrc;
+          img.onerror = function() {
+            // 原图也失败，显示错误状态
+            img.classList.add('error');
+            if (wrap) {
+              const skeleton = wrap.querySelector('.skeleton-loader');
+              if (skeleton) {
+                skeleton.style.background = '#f0e8d8';
+                skeleton.style.animation = 'none';
+                skeleton.innerHTML = '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#c9a84c;font-size:13px;">图片加载失败</div>';
+              }
+            }
+          };
+          img.onload = function() { img.classList.add('loaded'); if (wrap) { const s = wrap.querySelector('.skeleton-loader'); if (s) s.remove(); } };
+          return;
+        }
+      }
+      
+      // 完全失败
+      img.classList.add('error');
       if (wrap) {
         const skeleton = wrap.querySelector('.skeleton-loader');
         if (skeleton) {
