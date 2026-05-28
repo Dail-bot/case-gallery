@@ -107,27 +107,56 @@
 
   .card-image-wrap {
     position: relative; width: 100%; aspect-ratio: 3 / 4;
-    background: var(--light-gold); overflow: hidden;
+    background: #f5f1e8; overflow: hidden;
   }
   .card-image-wrap img {
     display: block; width: 100%; height: 100%; object-fit: cover;
     pointer-events: none; -webkit-user-drag: none; user-select: none;
+    opacity: 0; transition: opacity 0.4s ease;
   }
-  /* 防截图隐形水印 */
+  .card-image-wrap img.loaded { opacity: 1; }
+  .card-image-wrap img.error { opacity: 0; }
+
+  /* 骨架屏加载动画 */
+  .card-image-wrap .skeleton-loader {
+    position: absolute; inset: 0; z-index: 1;
+    background: linear-gradient(90deg, #f0ebe0 25%, #e8e0d0 50%, #f0ebe0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-pulse 1.5s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes skeleton-pulse {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* 防截图隐形水印 — 斜排重复文字 */
   .card-image-wrap::before {
-    content: '烁林煊';
-    position: absolute; bottom: 6px; right: 8px; z-index: 3;
-    font-size: 10px; color: rgba(255,255,255,0.55);
-    pointer-events: none; letter-spacing: 1px;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+    content: '';
+    position: absolute; inset: -20%; z-index: 3;
+    pointer-events: none; opacity: 0.06;
+    background-image:
+      repeating-linear-gradient(
+        -30deg,
+        transparent, transparent 60px,
+        rgba(26,92,58,0.7) 60px, rgba(26,92,58,0.7) 62px
+      );
+  }
+  /* 「烁林煊」文字水印 — 每张卡片右下角 */
+  .card-watermark-text {
+    position: absolute; bottom: 8px; right: 10px; z-index: 4;
+    font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.5);
+    pointer-events: none; letter-spacing: 2px;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    -webkit-user-select: none; user-select: none;
   }
   /* 栅格纹理防护层 — 增加截图后再利用的成本 */
   .card-image-wrap::after {
     content: '';
     position: absolute; inset: 0; z-index: 2; pointer-events: none;
     background:
-      repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(201,168,76,0.04) 40px, rgba(201,168,76,0.04) 41px),
-      repeating-linear-gradient(90deg, transparent, transparent 60px, rgba(201,168,76,0.03) 60px, rgba(201,168,76,0.03) 61px);
+      repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(201,168,76,0.05) 40px, rgba(201,168,76,0.05) 41px),
+      repeating-linear-gradient(90deg, transparent, transparent 60px, rgba(201,168,76,0.04) 60px, rgba(201,168,76,0.04) 61px);
   }
 
   .card-caption {
@@ -199,28 +228,54 @@
   /* ===== Lightbox ===== */
   .lightbox-overlay {
     position: fixed; inset: 0; z-index: 9999;
-    background: rgba(26, 92, 58, 0.96);
+    background: rgba(26, 92, 58, 0.97);
     display: flex; align-items: center; justify-content: center;
     opacity: 0; pointer-events: none; transition: opacity 0.3s;
   }
   .lightbox-overlay.open { opacity: 1; pointer-events: all; }
   .lightbox-content {
     position: relative; max-width: 90vw; max-height: 85vh;
-    display: flex; flex-direction: column; align-items: center; gap: 12px;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
   }
-  .lightbox-content img {
+  .lightbox-img-wrap {
+    position: relative; display: inline-block; line-height: 0;
     max-width: 90vw; max-height: 70vh; border-radius: 8px;
+    overflow: hidden;
     box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+    -webkit-user-select: none; user-select: none;
+  }
+  .lightbox-img-wrap img {
+    display: block; max-width: 90vw; max-height: 70vh;
     pointer-events: none; -webkit-user-drag: none; user-select: none;
+    -webkit-touch-callout: none;
   }
-  .lightbox-watermark {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    pointer-events: none; z-index: 10001; opacity: 0.12;
-    background-image:
-      repeating-linear-gradient(-35deg, transparent, transparent 80px, #c9a84c 80px, #c9a84c 82px),
-      repeating-linear-gradient(35deg, transparent, transparent 80px, #1a5c3a 80px, #1a5c3a 82px);
+  /* 透明拦截层 — 防止移动端长按触发保存菜单 */
+  .lightbox-touch-guard {
+    position: absolute; inset: 0; z-index: 10001;
+    pointer-events: none; /* 默认不影响导航按钮 */
+    -webkit-user-select: none; user-select: none;
   }
-  .lightbox-caption { font-size: 14px; color: #DDD; text-align: center; max-width: 300px; line-height: 1.6; }
+  @media (max-width: 768px) {
+    .lightbox-touch-guard { pointer-events: all; }
+  }
+  /* 灯箱文字水印 — 覆盖在图片上 */
+  .lightbox-img-watermark {
+    position: absolute; inset: 0; z-index: 10002; pointer-events: none;
+    display: flex; flex-wrap: wrap; align-content: space-around;
+    justify-content: space-around; overflow: hidden;
+    opacity: 0.15;
+  }
+  .lightbox-img-watermark span {
+    font-size: 18px; font-weight: 700; color: #fff;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.5);
+    letter-spacing: 3px; white-space: nowrap;
+    transform: rotate(-25deg);
+    padding: 20px 30px;
+  }
+  .lightbox-caption {
+    font-size: 14px; color: #DDD; text-align: center; max-width: 340px;
+    line-height: 1.6; padding: 0 8px;
+  }
   .lightbox-close {
     position: absolute; top: -40px; right: 0; width: 32px; height: 32px;
     background: none; border: 1.5px solid rgba(255,255,255,0.4); border-radius: 50%;
@@ -408,11 +463,14 @@
 
 <!-- ===== Lightbox ===== -->
 <div class="lightbox-overlay" id="lightbox">
-  <div class="lightbox-watermark" id="lightboxWatermark"></div>
   <div class="lightbox-content">
     <button class="lightbox-close" id="lightboxClose">✕</button>
     <button class="lightbox-nav lightbox-prev" id="lightboxPrev">‹</button>
-    <img id="lightboxImg" src="" alt="">
+    <div class="lightbox-img-wrap" id="lightboxImgWrap">
+      <img id="lightboxImg" src="" alt="">
+      <div class="lightbox-touch-guard"></div>
+      <div class="lightbox-img-watermark" id="lightboxImgWatermark"></div>
+    </div>
     <div class="lightbox-caption" id="lightboxCaption"></div>
     <button class="lightbox-nav lightbox-next" id="lightboxNext">›</button>
   </div>
@@ -525,10 +583,11 @@ function getCardHTML(item, sectionKey, index) {
     <div class="case-card" draggable="true" data-section="${sectionKey}" data-index="${index}" data-img="${encodeURI(item.img)}" data-caption="${escapeHTML(item.caption)}">
       <div class="drag-handle" title="拖拽排序">⋮⋮</div>
       <div class="card-image-wrap">
-        <img src="${encodeURI(item.img)}" alt="${escapeHTML(item.caption)}" loading="lazy">
+        <div class="skeleton-loader"></div>
+        <img src="" data-src="${encodeURI(item.img)}" alt="${escapeHTML(item.caption)}" loading="lazy">
+        <div class="card-watermark-text">烁林煊</div>
       </div>
       <div class="card-caption">
-        <span class="tag ${cfg.tagClass}">${cfg.tagLabel}</span>
         ${escapeHTML(item.caption)}
       </div>
       <button class="edit-delete-btn" data-section="${sectionKey}" data-index="${index}" title="删除">✕</button>
@@ -554,6 +613,8 @@ function loadSection(sectionKey) {
   batch.forEach((item, i) => { html += getCardHTML(item, sectionKey, already + i); });
   grid.insertAdjacentHTML('beforeend', html);
   loadedCounts[sectionKey] = already + toLoad;
+  // 触发新插入图片的懒加载观察
+  observeImages(grid);
   updateLoadMoreUI(sectionKey);
 }
 
@@ -657,6 +718,21 @@ function showLightboxImage() {
   if (!data) return;
   document.getElementById('lightboxImg').src = data.img;
   document.getElementById('lightboxCaption').textContent = data.caption;
+  // 生成文字水印
+  generateWatermark();
+}
+
+function generateWatermark() {
+  const container = document.getElementById('lightboxImgWatermark');
+  if (!container) return;
+  // 生成 6x4 的文字水印网格
+  let html = '';
+  for (let row = 0; row < 4; row++) {
+    for (let col = 0; col < 6; col++) {
+      html += '<span>烁林煊系统</span>';
+    }
+  }
+  container.innerHTML = html;
 }
 
 function closeLightbox() {
@@ -670,10 +746,8 @@ document.addEventListener('click', function(e) {
   const card = e.target.closest('.case-card');
   if (!card) return;
   const sectionKey = card.dataset.section;
-  const gridEl = document.getElementById('grid-' + sectionKey);
-  const cards = Array.from(gridEl.querySelectorAll('.case-card'));
-  const index = cards.indexOf(card);
-  if (index >= 0) openLightbox(sectionKey, index);
+  const index = parseInt(card.dataset.index);
+  if (!isNaN(index)) openLightbox(sectionKey, index);
 });
 
 document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
@@ -1186,12 +1260,58 @@ setInterval(checkDevTools, 2000);
 document.addEventListener('visibilitychange', function() {
   if (!protectionEnabled || editMode) return;
   if (document.hidden) {
-    // 页面隐藏时闪烁水印提示
-    const watermark = document.getElementById('lightboxWatermark');
-    if (watermark) watermark.style.opacity = '0.3';
-    setTimeout(() => { if (watermark) watermark.style.opacity = '0.12'; }, 500);
+    const watermark = document.getElementById('lightboxImgWatermark');
+    if (watermark) watermark.style.opacity = '0.35';
+    setTimeout(() => { if (watermark) watermark.style.opacity = '0.15'; }, 500);
   }
 });
+
+// =============================================
+// SMART LAZY LOADING — IntersectionObserver
+// =============================================
+const imageObserver = new IntersectionObserver(function(entries) {
+  entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    const img = entry.target;
+    const dataSrc = img.getAttribute('data-src');
+    if (!dataSrc) return;
+    // 开始加载图片
+    img.src = dataSrc;
+    img.removeAttribute('data-src');
+    // 加载完成
+    img.onload = function() {
+      img.classList.add('loaded');
+      const wrap = img.closest('.card-image-wrap');
+      if (wrap) {
+        const skeleton = wrap.querySelector('.skeleton-loader');
+        if (skeleton) skeleton.remove();
+      }
+    };
+    // 加载失败
+    img.onerror = function() {
+      img.classList.add('error');
+      const wrap = img.closest('.card-image-wrap');
+      if (wrap) {
+        const skeleton = wrap.querySelector('.skeleton-loader');
+        if (skeleton) {
+          skeleton.style.background = '#f0e8d8';
+          skeleton.style.animation = 'none';
+          skeleton.innerHTML = '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#c9a84c;font-size:13px;">图片加载失败</div>';
+        }
+      }
+    };
+    imageObserver.unobserve(img);
+  });
+}, {
+  rootMargin: '200px 0px', // 提前 200px 开始加载
+  threshold: 0.01
+});
+
+function observeImages(container) {
+  container.querySelectorAll('img[data-src]').forEach(img => {
+    imageObserver.observe(img);
+  });
+}
 
 // =============================================
 // INIT
