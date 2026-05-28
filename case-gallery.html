@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>烁林煊系统真实案例合集</title>
+<style>
+  :root {
+    --dark-green: #1a5c3a;
+    --secondary: #2d8a54;
+    --gold: #c9a84c;
+    --light-gold: #f0e6d0;
+    --warm-white: #faf8f3;
+    --card-bg: #FFFFFF;
+    --text-dark: #2D2D2D;
+    --text-mid: #5A5A5A;
+    --text-light: #8A8A8A;
+    --border: #E8E0D5;
+    --shadow: 0 2px 12px rgba(26, 92, 58, 0.08);
+    --shadow-hover: 0 4px 20px rgba(26, 92, 58, 0.14);
+    --danger: #d94a4a;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--warm-white);
+    color: var(--text-dark);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -webkit-user-select: none; user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-user-drag: none;
+  }
+
+  /* ===== Brand Header ===== */
+  .brand-header {
+    background: var(--dark-green);
+    padding: 40px 20px 36px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .brand-header::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(circle at 30% 70%, rgba(201,168,76,0.10) 0%, transparent 60%);
+  }
+  .brand-header .main-title {
+    font-size: 24px; font-weight: 700; color: #FFF; letter-spacing: 2px; position: relative;
+  }
+  .brand-header .divider-line {
+    width: 40px; height: 2px; background: var(--gold); margin: 12px auto; position: relative;
+  }
+
+  /* ===== Stats Bar ===== */
+  .stats-bar {
+    display: flex; justify-content: space-around; padding: 18px 12px;
+    background: #FFF; border-bottom: 1px solid var(--border);
+  }
+  .stat-item { text-align: center; flex: 1; }
+  .stat-number { font-size: 22px; font-weight: 800; color: var(--dark-green); line-height: 1.2; }
+  .stat-label { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+  .stat-divider { width: 1px; background: var(--border); margin: 0 4px; }
+
+  /* ===== Tab Bar ===== */
+  .tab-bar-wrapper {
+    position: sticky; top: 0; z-index: 100; background: var(--warm-white);
+    padding: 8px 0; border-bottom: 1px solid var(--border);
+  }
+  .tab-bar {
+    display: flex; gap: 0; padding: 0 12px; overflow-x: auto;
+    -webkit-overflow-scrolling: touch; scrollbar-width: none;
+  }
+  .tab-bar::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    flex-shrink: 0; padding: 8px 14px; font-size: 14px; font-weight: 500;
+    color: var(--text-mid); background: none; border: none; border-radius: 20px;
+    cursor: pointer; transition: all 0.25s; white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .tab-btn.active { color: var(--dark-green); font-weight: 700; background: rgba(201,168,76,0.15); }
+  .tab-btn .tab-count { font-size: 10px; color: var(--gold); font-weight: 600; margin-left: 2px; }
+
+  /* ===== Section ===== */
+  .section { display: none; padding: 20px 12px; }
+  .section.active { display: block; }
+  .section-header { margin-bottom: 16px; }
+  .section-title { font-size: 18px; font-weight: 700; color: var(--dark-green); letter-spacing: 1px; }
+  .section-subtitle { font-size: 13px; color: var(--text-light); margin-top: 2px; }
+  .section-divider { width: 24px; height: 2px; background: var(--gold); margin: 6px 0 0; }
+
+  /* ===== Card Grid ===== */
+  .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (min-width: 640px) { .card-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (min-width: 900px) { .card-grid { grid-template-columns: repeat(4, 1fr); } }
+
+  /* ===== Card ===== */
+  .case-card {
+    background: var(--card-bg); border-radius: 10px; overflow: hidden;
+    box-shadow: var(--shadow); transition: box-shadow 0.25s, transform 0.25s;
+    cursor: pointer; -webkit-tap-highlight-color: transparent; position: relative;
+  }
+  .case-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-2px); }
+  .case-card:active { transform: scale(0.98); }
+
+  .card-image-wrap {
+    position: relative; width: 100%; aspect-ratio: 3 / 4;
+    background: var(--light-gold); overflow: hidden;
+  }
+  .card-image-wrap img {
+    display: block; width: 100%; height: 100%; object-fit: cover;
+    pointer-events: none; -webkit-user-drag: none; user-select: none;
+  }
+  /* 防截图隐形水印 */
+  .card-image-wrap::before {
+    content: '烁林煊';
+    position: absolute; bottom: 6px; right: 8px; z-index: 3;
+    font-size: 10px; color: rgba(255,255,255,0.55);
+    pointer-events: none; letter-spacing: 1px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+  }
+  /* 栅格纹理防护层 — 增加截图后再利用的成本 */
+  .card-image-wrap::after {
+    content: '';
+    position: absolute; inset: 0; z-index: 2; pointer-events: none;
+    background:
+      repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(201,168,76,0.04) 40px, rgba(201,168,76,0.04) 41px),
+      repeating-linear-gradient(90deg, transparent, transparent 60px, rgba(201,168,76,0.03) 60px, rgba(201,168,76,0.03) 61px);
+  }
+
+  .card-caption {
+    padding: 10px 12px; font-size: 13px; color: var(--text-mid);
+    line-height: 1.5; border-top: 1px solid #F5F2EB;
+  }
+
+  /* ===== Edit Mode ===== */
+  .edit-delete-btn {
+    display: none; position: absolute; top: 6px; right: 6px; z-index: 10;
+    width: 28px; height: 28px; border-radius: 50%; background: var(--danger);
+    color: #FFF; border: none; font-size: 16px; line-height: 28px; text-align: center;
+    cursor: pointer; -webkit-tap-highlight-color: transparent; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .edit-delete-btn:hover { background: #c03939; }
+  .edit-mode .edit-delete-btn { display: block; }
+  .edit-mode .case-card { cursor: default; }
+  .edit-mode .case-card:active { transform: none; }
+
+  /* Drag Handle */
+  .drag-handle {
+    display: none; position: absolute; top: 4px; left: 6px; z-index: 11;
+    font-size: 18px; color: var(--gold); cursor: grab; user-select: none;
+    line-height: 1; letter-spacing: -3px; padding: 2px 4px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .drag-handle:active { cursor: grabbing; }
+  .edit-mode .drag-handle { display: block; }
+
+  /* Drag States */
+  .case-card.dragging { opacity: 0.45; transform: scale(0.95); }
+  .case-card.drag-target-before { border-top: 3px solid var(--gold); }
+  .case-card.drag-target-after { border-bottom: 3px solid var(--gold); }
+  .card-grid.drop-active .case-card { transition: border 0.15s; }
+
+  /* Touch drag clone */
+  .drag-clone {
+    position: fixed; z-index: 9999; pointer-events: none;
+    opacity: 0.85; transform: scale(1.03) rotate(1deg);
+    box-shadow: 0 8px 30px rgba(26,92,58,0.3); border-radius: 10px;
+    background: #FFF; transition: none;
+  }
+  .drag-clone .drag-handle,
+  .drag-clone .edit-delete-btn { display: none; }
+
+  .edit-add-card {
+    display: none; background: #FFF; border: 2px dashed var(--gold); border-radius: 10px;
+    aspect-ratio: 3 / 4; cursor: pointer; transition: all 0.25s;
+    align-items: center; justify-content: center; flex-direction: column; gap: 6px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .edit-mode .edit-add-card { display: flex; }
+  .edit-add-card:hover { border-color: var(--dark-green); background: var(--light-gold); }
+  .edit-add-card .plus { font-size: 32px; color: var(--gold); }
+  .edit-add-card .add-label { font-size: 12px; color: var(--text-light); }
+
+  /* ===== Load More ===== */
+  .load-more-wrap { text-align: center; padding: 20px 0 8px; }
+  .load-more-btn {
+    display: inline-block; padding: 10px 28px; font-size: 14px; color: var(--dark-green);
+    background: none; border: 1.5px solid var(--gold); border-radius: 24px;
+    cursor: pointer; transition: all 0.25s; font-weight: 500;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .load-more-btn:hover { background: var(--dark-green); color: #FFF; border-color: var(--dark-green); }
+  .load-more-btn.loading { opacity: 0.6; pointer-events: none; }
+  .load-more-info { font-size: 12px; color: var(--text-light); margin-top: 6px; }
+
+  /* ===== Lightbox ===== */
+  .lightbox-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(26, 92, 58, 0.96);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s;
+  }
+  .lightbox-overlay.open { opacity: 1; pointer-events: all; }
+  .lightbox-content {
+    position: relative; max-width: 90vw; max-height: 85vh;
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+  }
+  .lightbox-content img {
+    max-width: 90vw; max-height: 70vh; border-radius: 8px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+    pointer-events: none; -webkit-user-drag: none; user-select: none;
+  }
+  .lightbox-watermark {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 10001; opacity: 0.12;
+    background-image:
+      repeating-linear-gradient(-35deg, transparent, transparent 80px, #c9a84c 80px, #c9a84c 82px),
+      repeating-linear-gradient(35deg, transparent, transparent 80px, #1a5c3a 80px, #1a5c3a 82px);
+  }
+  .lightbox-caption { font-size: 14px; color: #DDD; text-align: center; max-width: 300px; line-height: 1.6; }
+  .lightbox-close {
+    position: absolute; top: -40px; right: 0; width: 32px; height: 32px;
+    background: none; border: 1.5px solid rgba(255,255,255,0.4); border-radius: 50%;
+    color: #FFF; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .lightbox-close:hover { border-color: #FFF; }
+  .lightbox-nav {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    width: 36px; height: 36px; background: rgba(255,255,255,0.15);
+    border: none; border-radius: 50%; color: #FFF; font-size: 18px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .lightbox-nav:hover { background: rgba(255,255,255,0.3); }
+  .lightbox-prev { left: -48px; }
+  .lightbox-next { right: -48px; }
+  @media (max-width: 500px) {
+    .lightbox-prev { left: 8px; top: auto; bottom: 20px; }
+    .lightbox-next { right: 8px; top: auto; bottom: 20px; }
+  }
+
+  /* ===== Back to Top ===== */
+  .back-to-top {
+    position: fixed; bottom: 80px; right: 16px; width: 40px; height: 40px;
+    border-radius: 50%; background: var(--dark-green); color: #FFF; border: none;
+    box-shadow: 0 2px 12px rgba(26,92,58,0.3); font-size: 18px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 50;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .back-to-top.visible { opacity: 1; pointer-events: all; }
+
+  /* ===== Footer ===== */
+  .page-footer {
+    text-align: center; padding: 0 20px 32px; font-size: 12px; color: var(--text-light);
+  }
+
+  /* ===== Admin Toggle ===== */
+  .admin-toggle {
+    display: inline-block; padding: 6px 16px; font-size: 12px;
+    color: var(--gold); background: none; border: 1px solid var(--gold);
+    border-radius: 14px; cursor: pointer; margin-top: 8px;
+    transition: all 0.25s; -webkit-tap-highlight-color: transparent;
+  }
+  .admin-toggle:hover { background: var(--gold); color: #FFF; }
+  .admin-toggle.active { background: var(--dark-green); color: #FFF; border-color: var(--dark-green); }
+
+  .admin-export {
+    display: inline-block; padding: 6px 16px; font-size: 12px;
+    color: var(--text-light); background: none; border: 1px solid var(--border);
+    border-radius: 14px; cursor: pointer; margin-top: 8px; margin-left: 8px;
+    transition: all 0.25s; -webkit-tap-highlight-color: transparent;
+  }
+  .admin-export:hover { background: var(--border); }
+
+  /* ===== Add Case Modal ===== */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 10000;
+    background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.25s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal-box {
+    background: #FFF; border-radius: 14px; padding: 24px 20px;
+    width: 90vw; max-width: 380px; box-shadow: 0 8px 40px rgba(0,0,0,0.2);
+  }
+  .modal-box h3 { font-size: 17px; color: var(--dark-green); margin-bottom: 16px; }
+  .modal-box label { display: block; font-size: 13px; color: var(--text-mid); margin-bottom: 4px; }
+  .modal-box select,
+  .modal-box input,
+  .modal-box textarea {
+    width: 100%; padding: 10px 12px; font-size: 14px; border: 1.5px solid var(--border);
+    border-radius: 8px; margin-bottom: 14px; outline: none; font-family: inherit;
+    -webkit-appearance: none;
+  }
+  .modal-box select:focus,
+  .modal-box input:focus,
+  .modal-box textarea:focus { border-color: var(--gold); }
+  .modal-box textarea { resize: vertical; min-height: 60px; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+  .modal-actions button {
+    padding: 10px 20px; font-size: 14px; border-radius: 20px; border: none; cursor: pointer;
+    font-weight: 500; transition: all 0.2s; -webkit-tap-highlight-color: transparent;
+  }
+  .btn-cancel { background: #F5F2EB; color: var(--text-mid); }
+  .btn-cancel:hover { background: var(--border); }
+  .btn-save { background: var(--dark-green); color: #FFF; }
+  .btn-save:hover { background: var(--secondary); }
+
+  .hint-text { font-size: 11px; color: var(--text-light); margin-top: -10px; margin-bottom: 14px; }
+
+  /* ===== Toast ===== */
+  .toast {
+    position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
+    background: var(--dark-green); color: #FFF; padding: 10px 24px;
+    border-radius: 22px; font-size: 14px; z-index: 20000;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s;
+  }
+  .toast.show { opacity: 1; pointer-events: all; }
+</style>
+</head>
+<body oncontextmenu="return false" ondragstart="return false" onselectstart="return false">
+
+<!-- ===== Brand Header ===== -->
+<div class="brand-header">
+  <div class="main-title">烁林煊系统真实案例合集</div>
+  <div class="divider-line"></div>
+  <div style="font-size:13px;color:rgba(255,255,255,0.6);margin-top:4px;">大健康连锁中医美容养生馆·用结果说话</div>
+</div>
+
+<!-- ===== Stats Bar ===== -->
+<div class="stats-bar">
+  <div class="stat-item"><div class="stat-number">200+</div><div class="stat-label">调理改善客户</div></div>
+  <div class="stat-divider"></div>
+  <div class="stat-item"><div class="stat-number">100+</div><div class="stat-label">连锁分店</div></div>
+  <div class="stat-divider"></div>
+  <div class="stat-item"><div class="stat-number">500+</div><div class="stat-label">轻创业者</div></div>
+  <div class="stat-divider"></div>
+  <div class="stat-item"><div class="stat-number">100+</div><div class="stat-label">操盘手</div></div>
+</div>
+
+<!-- ===== Tab Bar ===== -->
+<div class="tab-bar-wrapper" id="tabBarWrapper">
+  <div class="tab-bar" id="tabBar">
+    <button class="tab-btn active" data-tab="body">身体调理<span class="tab-count">0</span></button>
+    <button class="tab-btn" data-tab="store">分店主<span class="tab-count">0</span></button>
+    <button class="tab-btn" data-tab="biz">轻创业<span class="tab-count">0</span></button>
+    <button class="tab-btn" data-tab="ops">操盘手<span class="tab-count">0</span></button>
+  </div>
+</div>
+
+<!-- ===== SECTIONS ===== -->
+<div class="section active" id="section-body">
+  <div class="section-header">
+    <div class="section-title">身体调理案例</div>
+    <div class="section-subtitle">他们通过系统调理+核心技术，改变了身边状态</div>
+    <div class="section-divider"></div>
+  </div>
+  <div class="card-grid" id="grid-body"></div>
+  <div class="load-more-wrap" id="loadMoreWrap-body">
+    <button class="load-more-btn" data-section="body" id="loadMoreBtn-body">加载更多</button>
+    <div class="load-more-info" id="loadMoreInfo-body"></div>
+  </div>
+</div>
+
+<div class="section" id="section-store">
+  <div class="section-header">
+    <div class="section-title">分店主案例</div>
+    <div class="section-subtitle">小而美的养生馆，月营收破万的秘密</div>
+    <div class="section-divider"></div>
+  </div>
+  <div class="card-grid" id="grid-store"></div>
+  <div class="load-more-wrap" id="loadMoreWrap-store">
+    <button class="load-more-btn" data-section="store" id="loadMoreBtn-store">加载更多</button>
+    <div class="load-more-info" id="loadMoreInfo-store"></div>
+  </div>
+</div>
+
+<div class="section" id="section-biz">
+  <div class="section-header">
+    <div class="section-title">轻创业案例</div>
+    <div class="section-subtitle">3000 元起步，即可搭建管道收入</div>
+    <div class="section-divider"></div>
+  </div>
+  <div class="card-grid" id="grid-biz"></div>
+  <div class="load-more-wrap" id="loadMoreWrap-biz">
+    <button class="load-more-btn" data-section="biz" id="loadMoreBtn-biz">加载更多</button>
+    <div class="load-more-info" id="loadMoreInfo-biz"></div>
+  </div>
+</div>
+
+<div class="section" id="section-ops">
+  <div class="section-header">
+    <div class="section-title">线上获客操盘手案例</div>
+    <div class="section-subtitle">普通人持续深耕，也能轻松搭建管道收入</div>
+    <div class="section-divider"></div>
+  </div>
+  <div class="card-grid" id="grid-ops"></div>
+  <div class="load-more-wrap" id="loadMoreWrap-ops">
+    <button class="load-more-btn" data-section="ops" id="loadMoreBtn-ops">加载更多</button>
+    <div class="load-more-info" id="loadMoreInfo-ops"></div>
+  </div>
+</div>
+
+<!-- ===== Lightbox ===== -->
+<div class="lightbox-overlay" id="lightbox">
+  <div class="lightbox-watermark" id="lightboxWatermark"></div>
+  <div class="lightbox-content">
+    <button class="lightbox-close" id="lightboxClose">✕</button>
+    <button class="lightbox-nav lightbox-prev" id="lightboxPrev">‹</button>
+    <img id="lightboxImg" src="" alt="">
+    <div class="lightbox-caption" id="lightboxCaption"></div>
+    <button class="lightbox-nav lightbox-next" id="lightboxNext">›</button>
+  </div>
+</div>
+
+<!-- ===== Back to Top ===== -->
+<button class="back-to-top" id="backToTop">↑</button>
+
+<!-- ===== Footer ===== -->
+<div class="page-footer">
+  烁林煊系统 · 真实案例合集
+  <br>
+  <button class="admin-toggle" id="adminToggle">管理案例</button>
+  <button class="admin-export" id="adminExport">导出数据</button>
+</div>
+
+<!-- ===== Add Case Modal ===== -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal-box">
+    <h3>添加新案例</h3>
+    <label>选择板块</label>
+    <select id="addCategory">
+      <option value="body">身体调理</option>
+      <option value="store">分店主</option>
+      <option value="biz">轻创业</option>
+      <option value="ops">操盘手</option>
+    </select>
+    <label>图片文件名</label>
+    <input type="text" id="addFilename" placeholder="例如：新案例截图.jpg">
+    <div class="hint-text">先把图片放到 images/对应板块/ 文件夹里，再填文件名</div>
+    <label>描述文字</label>
+    <textarea id="addCaption" placeholder="输入图片的描述文字"></textarea>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="modalCancel">取消</button>
+      <button class="btn-save" id="modalSave">确认添加</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Toast ===== -->
+<div class="toast" id="toast"></div>
+
+<!-- ===== Data File ===== -->
+<script src="cases-data.js"></script>
+
+<script>
+// =============================================
+// SECTION CONFIG
+// =============================================
+const sectionConfig = {
+  body: { dataKey: '身体调理', tagClass: 'tag-body', tagLabel: '身体调理', labelKey: 'body', folder: '身体调理' },
+  store: { dataKey: '分店主', tagClass: 'tag-store', tagLabel: '分店主', labelKey: 'store', folder: '分店主' },
+  biz: { dataKey: '轻创业', tagClass: 'tag-biz', tagLabel: '轻创业', labelKey: 'biz', folder: '轻创业' },
+  ops: { dataKey: '操盘手', tagClass: 'tag-ops', tagLabel: '操盘手', labelKey: 'ops', folder: '操盘手' }
+};
+
+const STORAGE_KEY = 'shuolinxuan_case_data';
+
+// =============================================
+// DATA — localStorage first, then caseData.js fallback
+// =============================================
+function loadData() {
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (stored) {
+    try { return JSON.parse(stored); } catch(e) {}
+  }
+  // Fallback to caseData from cases-data.js
+  const data = {};
+  Object.keys(sectionConfig).forEach(key => {
+    const cfg = sectionConfig[key];
+    if (window.caseData && window.caseData[cfg.dataKey]) {
+      data[key] = window.caseData[cfg.dataKey].items || [];
+    } else {
+      data[key] = [];
+    }
+  });
+  return data;
+}
+
+function saveData(data) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+let caseDataLocal = loadData();
+
+function getItems(sectionKey) {
+  return caseDataLocal[sectionKey] || [];
+}
+
+function setItems(sectionKey, items) {
+  caseDataLocal[sectionKey] = items;
+  saveData(caseDataLocal);
+}
+
+// =============================================
+// CONFIG
+// =============================================
+const PAGE_SIZE = 12;
+let loadedCounts = { body: 0, store: 0, biz: 0, ops: 0 };
+let currentTab = 'body';
+let lightboxData = [];
+let editMode = false;
+
+// =============================================
+// RENDER
+// =============================================
+function getCardHTML(item, sectionKey, index) {
+  const cfg = sectionConfig[sectionKey];
+  return `
+    <div class="case-card" draggable="true" data-section="${sectionKey}" data-index="${index}" data-img="${encodeURI(item.img)}" data-caption="${escapeHTML(item.caption)}">
+      <div class="drag-handle" title="拖拽排序">⋮⋮</div>
+      <div class="card-image-wrap">
+        <img src="${encodeURI(item.img)}" alt="${escapeHTML(item.caption)}" loading="lazy">
+      </div>
+      <div class="card-caption">
+        <span class="tag ${cfg.tagClass}">${cfg.tagLabel}</span>
+        ${escapeHTML(item.caption)}
+      </div>
+      <button class="edit-delete-btn" data-section="${sectionKey}" data-index="${index}" title="删除">✕</button>
+    </div>
+  `;
+}
+
+function escapeHTML(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function loadSection(sectionKey) {
+  const items = getItems(sectionKey);
+  const grid = document.getElementById('grid-' + sectionKey);
+  const already = loadedCounts[sectionKey];
+  const toLoad = Math.min(PAGE_SIZE, items.length - already);
+  if (toLoad <= 0) { updateLoadMoreUI(sectionKey); return; }
+
+  const batch = items.slice(already, already + toLoad);
+  let html = '';
+  batch.forEach((item, i) => { html += getCardHTML(item, sectionKey, already + i); });
+  grid.insertAdjacentHTML('beforeend', html);
+  loadedCounts[sectionKey] = already + toLoad;
+  updateLoadMoreUI(sectionKey);
+}
+
+function updateLoadMoreUI(sectionKey) {
+  const items = getItems(sectionKey);
+  const already = loadedCounts[sectionKey];
+  const remaining = items.length - already;
+  const btn = document.getElementById('loadMoreBtn-' + sectionKey);
+  const info = document.getElementById('loadMoreInfo-' + sectionKey);
+  if (!btn || !info) return;
+  if (remaining <= 0) {
+    btn.textContent = '已加载全部'; btn.classList.add('loading');
+    info.textContent = '共 ' + items.length + ' 个案例';
+  } else {
+    btn.textContent = '加载更多（剩余 ' + remaining + ' 个）';
+    btn.classList.remove('loading');
+    info.textContent = '已显示 ' + already + ' / ' + items.length;
+  }
+}
+
+// =============================================
+// REFRESH — re-render a section completely
+// =============================================
+function refreshSection(sectionKey) {
+  const grid = document.getElementById('grid-' + sectionKey);
+  const items = getItems(sectionKey);
+  loadedCounts[sectionKey] = 0;
+  // Keep edit-add-card if present
+  const addCardEl = grid.querySelector('.edit-add-card');
+  grid.innerHTML = '';
+  if (editMode && addCardEl) grid.appendChild(addCardEl);
+  loadSection(sectionKey);
+  updateTabCount(sectionKey);
+}
+
+function refreshAllSections() {
+  Object.keys(sectionConfig).forEach(key => {
+    const grid = document.getElementById('grid-' + key);
+    const addCardEl = grid.querySelector('.edit-add-card');
+    loadedCounts[key] = 0;
+    grid.innerHTML = '';
+    if (editMode && addCardEl) grid.appendChild(addCardEl);
+    if (currentTab === key) loadSection(key);
+    updateTabCount(key);
+  });
+}
+
+function updateTabCount(sectionKey) {
+  const items = getItems(sectionKey);
+  const btn = document.querySelector('[data-tab="' + sectionKey + '"] .tab-count');
+  if (btn) btn.textContent = items.length;
+}
+
+function updateAllTabCounts() {
+  Object.keys(sectionConfig).forEach(updateTabCount);
+}
+
+// =============================================
+// TAB SWITCHING
+// =============================================
+function switchTab(sectionKey) {
+  currentTab = sectionKey;
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('section-' + sectionKey).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('[data-tab="' + sectionKey + '"]').classList.add('active');
+  if (loadedCounts[sectionKey] === 0) loadSection(sectionKey);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+document.getElementById('tabBar').addEventListener('click', function(e) {
+  const btn = e.target.closest('.tab-btn');
+  if (!btn) return;
+  switchTab(btn.dataset.tab);
+});
+
+// =============================================
+// LOAD MORE
+// =============================================
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('.load-more-btn');
+  if (!btn || btn.classList.contains('loading')) return;
+  loadSection(btn.dataset.section);
+});
+
+// =============================================
+// LIGHTBOX
+// =============================================
+let lightboxIndex = -1;
+function openLightbox(sectionKey, index) {
+  const items = getItems(sectionKey);
+  lightboxData = items.map(item => ({ img: item.img, caption: item.caption, section: sectionKey }));
+  lightboxIndex = index;
+  showLightboxImage();
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function showLightboxImage() {
+  const data = lightboxData[lightboxIndex];
+  if (!data) return;
+  document.getElementById('lightboxImg').src = data.img;
+  document.getElementById('lightboxCaption').textContent = data.caption;
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow = '';
+  lightboxData = []; lightboxIndex = -1;
+}
+
+document.addEventListener('click', function(e) {
+  if (editMode) return;
+  const card = e.target.closest('.case-card');
+  if (!card) return;
+  const sectionKey = card.dataset.section;
+  const gridEl = document.getElementById('grid-' + sectionKey);
+  const cards = Array.from(gridEl.querySelectorAll('.case-card'));
+  const index = cards.indexOf(card);
+  if (index >= 0) openLightbox(sectionKey, index);
+});
+
+document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
+document.getElementById('lightbox').addEventListener('click', function(e) {
+  if (e.target === this) closeLightbox();
+});
+document.getElementById('lightboxPrev').addEventListener('click', function(e) {
+  e.stopPropagation();
+  if (lightboxIndex > 0) { lightboxIndex--; showLightboxImage(); }
+});
+document.getElementById('lightboxNext').addEventListener('click', function(e) {
+  e.stopPropagation();
+  if (lightboxIndex < lightboxData.length - 1) { lightboxIndex++; showLightboxImage(); }
+});
+document.addEventListener('keydown', function(e) {
+  if (!document.getElementById('lightbox').classList.contains('open')) return;
+  if (e.key === 'Escape') closeLightbox();
+  if (e.key === 'ArrowLeft' && lightboxIndex > 0) { lightboxIndex--; showLightboxImage(); }
+  if (e.key === 'ArrowRight' && lightboxIndex < lightboxData.length - 1) { lightboxIndex++; showLightboxImage(); }
+});
+
+// =============================================
+// BACK TO TOP
+// =============================================
+const backToTopBtn = document.getElementById('backToTop');
+window.addEventListener('scroll', function() {
+  backToTopBtn.classList.toggle('visible', window.scrollY > 400);
+});
+backToTopBtn.addEventListener('click', function() {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+// =============================================
+// TOAST
+// =============================================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// =============================================
+// EDIT MODE
+// =============================================
+const adminToggle = document.getElementById('adminToggle');
+
+function enterEditMode() {
+  editMode = true;
+  document.body.classList.add('edit-mode');
+  adminToggle.textContent = '退出管理';
+  adminToggle.classList.add('active');
+  disableProtection(); // 编辑时解除保护
+
+  // Insert add-card buttons into each grid
+  Object.keys(sectionConfig).forEach(key => {
+    const grid = document.getElementById('grid-' + key);
+    if (!grid.querySelector('.edit-add-card')) {
+      const addCard = document.createElement('div');
+      addCard.className = 'edit-add-card';
+      addCard.dataset.section = key;
+      addCard.innerHTML = '<span class="plus">+</span><span class="add-label">添加案例</span>';
+      grid.insertBefore(addCard, grid.firstChild);
+    }
+  });
+
+  showToast('拖拽卡片可调整排序 · 点击 ✕ 可删除');
+}
+
+function exitEditMode() {
+  editMode = false;
+  document.body.classList.remove('edit-mode');
+  adminToggle.textContent = '管理案例';
+  adminToggle.classList.remove('active');
+  enableProtection(); // 退出编辑恢复保护
+
+  // Remove add-card buttons
+  document.querySelectorAll('.edit-add-card').forEach(el => el.remove());
+}
+
+adminToggle.addEventListener('click', function() {
+  if (editMode) { exitEditMode(); } else { enterEditMode(); }
+});
+
+// ---- Delete ----
+document.addEventListener('click', function(e) {
+  if (!editMode) return;
+
+  // Delete button
+  const delBtn = e.target.closest('.edit-delete-btn');
+  if (delBtn) {
+    e.stopPropagation();
+    const sectionKey = delBtn.dataset.section;
+    const index = parseInt(delBtn.dataset.index);
+    const items = getItems(sectionKey);
+    if (!confirm('确定删除这个案例吗？\n\n' + items[index].caption)) return;
+    items.splice(index, 1);
+    setItems(sectionKey, items);
+    refreshSection(sectionKey);
+    showToast('已删除');
+    return;
+  }
+
+  // Add card button
+  const addCard = e.target.closest('.edit-add-card');
+  if (addCard) {
+    document.getElementById('addCategory').value = addCard.dataset.section;
+    document.getElementById('addModal').classList.add('open');
+    document.getElementById('addFilename').focus();
+  }
+});
+
+// =============================================
+// DRAG & DROP — 拖拽排序（桌面端）
+// =============================================
+let dragSource = null;   // { sectionKey, index }
+let dragTargetIdx = -1;
+
+document.addEventListener('dragstart', function(e) {
+  if (!editMode) return;
+  const card = e.target.closest('.case-card');
+  if (!card) { e.preventDefault(); return; }
+  dragSource = { sectionKey: card.dataset.section, index: parseInt(card.dataset.index) };
+  dragTargetIdx = -1;
+  card.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', '');
+  // 让拖拽影像半透明
+  if (e.dataTransfer.setDragImage) {
+    const ghost = card.cloneNode(true);
+    ghost.style.opacity = '0.5';
+    ghost.style.width = card.offsetWidth + 'px';
+    ghost.style.position = 'absolute';
+    ghost.style.top = '-9999px';
+    document.body.appendChild(ghost);
+    e.dataTransfer.setDragImage(ghost, ghost.offsetWidth/2, ghost.offsetHeight/2);
+    setTimeout(() => ghost.remove(), 0);
+  }
+});
+
+document.addEventListener('dragover', function(e) {
+  if (!editMode || !dragSource) return;
+  e.preventDefault();
+  const card = e.target.closest('.case-card');
+  const grid = e.target.closest('.card-grid');
+  if (!grid) return;
+  grid.classList.add('drop-active');
+
+  // 清除旧指示器
+  grid.querySelectorAll('.drag-target-before, .drag-target-after').forEach(el => {
+    el.classList.remove('drag-target-before', 'drag-target-after');
+  });
+
+  if (card) {
+    const rect = card.getBoundingClientRect();
+    const midY = rect.top + rect.height / 2;
+    if (e.clientY < midY) {
+      card.classList.add('drag-target-before');
+      dragTargetIdx = parseInt(card.dataset.index);
+    } else {
+      card.classList.add('drag-target-after');
+      dragTargetIdx = parseInt(card.dataset.index) + 1;
+    }
+  }
+});
+
+document.addEventListener('dragleave', function(e) {
+  if (!editMode) return;
+  const card = e.target.closest('.case-card');
+  if (card && !card.contains(e.relatedTarget)) {
+    card.classList.remove('drag-target-before', 'drag-target-after');
+  }
+});
+
+document.addEventListener('drop', function(e) {
+  if (!editMode || !dragSource) return;
+  e.preventDefault();
+
+  const grid = e.target.closest('.card-grid');
+  if (grid) {
+    grid.querySelectorAll('.drag-target-before, .drag-target-after').forEach(el => {
+      el.classList.remove('drag-target-before', 'drag-target-after');
+    });
+    grid.classList.remove('drop-active');
+  }
+
+  const sectionKey = dragSource.sectionKey;
+  const fromIdx = dragSource.index;
+  const items = getItems(sectionKey);
+
+  // 确定目标位置
+  let toIdx = dragTargetIdx;
+  if (toIdx < 0 || toIdx > items.length) toIdx = items.length;
+  // 向下拖时调整索引（因为取出后数组缩短了一位）
+  if (toIdx > fromIdx) toIdx--;
+
+  if (fromIdx !== toIdx) {
+    const [moved] = items.splice(fromIdx, 1);
+    items.splice(toIdx, 0, moved);
+    setItems(sectionKey, items);
+    refreshSection(sectionKey);
+    showToast('排序已保存');
+  }
+
+  dragSource = null;
+  dragTargetIdx = -1;
+});
+
+document.addEventListener('dragend', function(e) {
+  if (!dragSource) return;
+  const sectionKey = dragSource.sectionKey;
+  const grid = document.getElementById('grid-' + sectionKey);
+  if (grid) {
+    grid.querySelectorAll('.case-card.dragging').forEach(el => el.classList.remove('dragging'));
+    grid.querySelectorAll('.drag-target-before, .drag-target-after').forEach(el => {
+      el.classList.remove('drag-target-before', 'drag-target-after');
+    });
+    grid.classList.remove('drop-active');
+  }
+  dragSource = null;
+  dragTargetIdx = -1;
+});
+
+// =============================================
+// TOUCH DRAG — 移动端拖拽排序
+// =============================================
+let touchDrag = {
+  active: false,
+  sourceSection: '',
+  sourceIndex: -1,
+  clone: null,
+  startX: 0, startY: 0,
+  offsetX: 0, offsetY: 0,
+  longPressTimer: null,
+  cardWidth: 0, cardHeight: 0,
+  targetIndex: -1
+};
+
+function clearTouchDrag() {
+  if (touchDrag.clone) { touchDrag.clone.remove(); touchDrag.clone = null; }
+  if (touchDrag.longPressTimer) { clearTimeout(touchDrag.longPressTimer); touchDrag.longPressTimer = null; }
+  // 清除所有指示器
+  document.querySelectorAll('.drag-target-before, .drag-target-after').forEach(el => {
+    el.classList.remove('drag-target-before', 'drag-target-after');
+  });
+  document.querySelectorAll('.card-grid.drop-active').forEach(el => el.classList.remove('drop-active'));
+  touchDrag.active = false;
+  touchDrag.sourceSection = '';
+  touchDrag.sourceIndex = -1;
+  touchDrag.targetIndex = -1;
+}
+
+document.addEventListener('touchstart', function(e) {
+  if (!editMode) return;
+  const card = e.target.closest('.case-card');
+  if (!card) return;
+
+  const touch = e.touches[0];
+  touchDrag.startX = touch.clientX;
+  touchDrag.startY = touch.clientY;
+  touchDrag.sourceSection = card.dataset.section;
+  touchDrag.sourceIndex = parseInt(card.dataset.index);
+  touchDrag.cardWidth = card.offsetWidth;
+  touchDrag.cardHeight = card.offsetHeight;
+
+  // 长按 500ms 触发拖拽
+  const targetCard = card;
+  touchDrag.longPressTimer = setTimeout(() => {
+    touchDrag.active = true;
+    touchDrag.offsetX = touchDrag.startX - targetCard.getBoundingClientRect().left;
+    touchDrag.offsetY = touchDrag.startY - targetCard.getBoundingClientRect().top;
+
+    // 创建拖拽克隆
+    const clone = targetCard.cloneNode(true);
+    clone.classList.add('drag-clone');
+    clone.style.width = touchDrag.cardWidth + 'px';
+    clone.style.left = (touchDrag.startX - touchDrag.offsetX) + 'px';
+    clone.style.top = (touchDrag.startY - touchDrag.offsetY) + 'px';
+    document.body.appendChild(clone);
+    touchDrag.clone = clone;
+
+    targetCard.classList.add('dragging');
+
+    // 震动反馈
+    if (navigator.vibrate) navigator.vibrate(10);
+  }, 500);
+}, { passive: false });
+
+document.addEventListener('touchmove', function(e) {
+  if (!touchDrag.active) {
+    // 如果移动超过阈值，取消长按
+    if (touchDrag.longPressTimer) {
+      const touch = e.touches[0];
+      const dx = touch.clientX - touchDrag.startX;
+      const dy = touch.clientY - touchDrag.startY;
+      if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
+        clearTimeout(touchDrag.longPressTimer);
+        touchDrag.longPressTimer = null;
+      }
+    }
+    return;
+  }
+  e.preventDefault();
+
+  const touch = e.touches[0];
+  if (touchDrag.clone) {
+    touchDrag.clone.style.left = (touch.clientX - touchDrag.offsetX) + 'px';
+    touchDrag.clone.style.top = (touch.clientY - touchDrag.offsetY) + 'px';
+  }
+
+  // 查找目标位置
+  const gridEl = document.getElementById('grid-' + touchDrag.sourceSection);
+  if (!gridEl) return;
+  gridEl.classList.add('drop-active');
+
+  const cards = Array.from(gridEl.querySelectorAll('.case-card'));
+  // 清除旧指示器
+  cards.forEach(c => {
+    c.classList.remove('drag-target-before', 'drag-target-after');
+  });
+
+  let bestCard = null;
+  let bestDistance = Infinity;
+  let insertBefore = true;
+
+  cards.forEach(card => {
+    if (card.classList.contains('dragging')) return;
+    const rect = card.getBoundingClientRect();
+    const midY = rect.top + rect.height / 2;
+    const midX = rect.left + rect.width / 2;
+    const dist = Math.hypot(touch.clientX - midX, touch.clientY - midY);
+    if (dist < bestDistance) {
+      bestDistance = dist;
+      bestCard = card;
+      insertBefore = touch.clientY < rect.top + rect.height / 2;
+    }
+  });
+
+  if (bestCard) {
+    if (insertBefore) {
+      bestCard.classList.add('drag-target-before');
+      touchDrag.targetIndex = parseInt(bestCard.dataset.index);
+    } else {
+      bestCard.classList.add('drag-target-after');
+      touchDrag.targetIndex = parseInt(bestCard.dataset.index) + 1;
+    }
+  }
+}, { passive: false });
+
+document.addEventListener('touchend', function(e) {
+  if (!touchDrag.active) {
+    if (touchDrag.longPressTimer) {
+      clearTimeout(touchDrag.longPressTimer);
+      touchDrag.longPressTimer = null;
+    }
+    return;
+  }
+
+  const sectionKey = touchDrag.sourceSection;
+  const fromIdx = touchDrag.sourceIndex;
+  const items = getItems(sectionKey);
+  let toIdx = touchDrag.targetIndex;
+
+  if (toIdx >= 0 && toIdx <= items.length && toIdx !== fromIdx) {
+    if (toIdx > fromIdx) toIdx--;
+    const [moved] = items.splice(fromIdx, 1);
+    items.splice(toIdx, 0, moved);
+    setItems(sectionKey, items);
+    refreshSection(sectionKey);
+    showToast('排序已保存');
+  }
+
+  clearTouchDrag();
+});
+
+// ---- Add Modal ----
+document.getElementById('modalCancel').addEventListener('click', function() {
+  document.getElementById('addModal').classList.remove('open');
+  document.getElementById('addFilename').value = '';
+  document.getElementById('addCaption').value = '';
+});
+
+document.getElementById('addModal').addEventListener('click', function(e) {
+  if (e.target === this) {
+    document.getElementById('addModal').classList.remove('open');
+  }
+});
+
+document.getElementById('modalSave').addEventListener('click', function() {
+  const sectionKey = document.getElementById('addCategory').value;
+  const filename = document.getElementById('addFilename').value.trim();
+  const caption = document.getElementById('addCaption').value.trim();
+
+  if (!filename) { showToast('请输入图片文件名'); return; }
+  if (!caption) { showToast('请输入描述文字'); return; }
+
+  const cfg = sectionConfig[sectionKey];
+  const imgPath = 'images/' + cfg.folder + '/' + filename;
+  const items = getItems(sectionKey);
+  items.push({ img: imgPath, caption: caption });
+  setItems(sectionKey, items);
+  refreshSection(sectionKey);
+
+  document.getElementById('addModal').classList.remove('open');
+  document.getElementById('addFilename').value = '';
+  document.getElementById('addCaption').value = '';
+  showToast('已添加！');
+});
+
+// ---- Export ----
+document.getElementById('adminExport').addEventListener('click', function() {
+  // Build cases-data.js content from current data
+  const catCounts = {};
+  let content = '// ============================================================\n';
+  content += '// 烁林煊系统真实案例合集 - 案例数据文件\n';
+  content += '// 由可视化编辑面板导出\n';
+  content += '// ============================================================\n\n';
+  content += 'window.caseData = {\n';
+
+  const catKeys = ['body', 'store', 'biz', 'ops'];
+  catKeys.forEach((key, idx) => {
+    const cfg = sectionConfig[key];
+    const items = getItems(key);
+    catCounts[key] = items.length;
+    content += '  "' + cfg.dataKey + '": {"items": [\n';
+    items.forEach((item, i) => {
+      const comma = (i < items.length - 1) ? ',' : '';
+      content += '    {"img": "' + item.img + '", "caption": "' + item.caption.replace(/"/g, '\\"') + '"}' + comma + '\n';
+    });
+    content += '  ]}' + (idx < catKeys.length - 1 ? ',' : '') + '\n';
+  });
+
+  content += '};\n';
+  content += '\n';
+  content += '// 案例统计\n';
+  content += '// 身体调理: ' + catCounts.body + ' | 分店主: ' + catCounts.store + ' | 轻创业: ' + catCounts.biz + ' | 操盘手: ' + catCounts.ops + '\n';
+
+  const blob = new Blob([content], { type: 'application/javascript' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'cases-data.js';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('数据文件已下载！替换旧文件即可');
+});
+
+// =============================================
+// CONTENT PROTECTION — 图片防保存/防截图
+// =============================================
+let protectionEnabled = true;
+
+function enableProtection() {
+  protectionEnabled = true;
+  document.body.setAttribute('oncontextmenu', 'return false');
+  document.body.setAttribute('ondragstart', 'return false');
+  document.body.setAttribute('onselectstart', 'return false');
+}
+
+function disableProtection() {
+  protectionEnabled = false;
+  document.body.setAttribute('oncontextmenu', 'return true');
+  document.body.setAttribute('ondragstart', 'return true');
+  document.body.setAttribute('onselectstart', 'return true');
+}
+
+// 禁止右键
+document.addEventListener('contextmenu', function(e) {
+  if (!protectionEnabled) return; // 编辑模式允许右键
+  // 编辑模式的按钮允许右键（删除等操作）
+  if (editMode && e.target.closest('.case-card')) return;
+  e.preventDefault();
+  return false;
+});
+
+// 禁止快捷键（F12/DevTools/Save/Source）
+document.addEventListener('keydown', function(e) {
+  if (!protectionEnabled) return;
+  if (
+    e.key === 'F12' ||
+    (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
+    (e.ctrlKey && (e.key === 'u' || e.key === 'U' || e.key === 's' || e.key === 'S')) ||
+    (e.metaKey && e.altKey && (e.key === 'i' || e.key === 'I' || e.key === 'j' || e.key === 'J')) ||
+    (e.metaKey && (e.key === 'u' || e.key === 'U' || e.key === 's' || e.key === 'S'))
+  ) {
+    e.preventDefault();
+    return false;
+  }
+});
+
+// DevTools 检测 — 发现后模糊页面
+let devtoolsCheckTimer = null;
+function checkDevTools() {
+  if (!protectionEnabled || editMode) return;
+  const threshold = 160;
+  const widthThreshold = window.outerWidth - window.innerWidth > threshold;
+  const heightThreshold = window.outerHeight - window.innerHeight > threshold;
+  if (widthThreshold || heightThreshold) {
+    document.body.style.filter = 'blur(8px)';
+    document.body.style.pointerEvents = 'none';
+    showToast('检测到开发者工具，页面已锁定');
+  } else {
+    document.body.style.filter = '';
+    document.body.style.pointerEvents = '';
+  }
+}
+setInterval(checkDevTools, 2000);
+
+// 截图检测（iOS/Android 可能触发 visibility 变化）
+document.addEventListener('visibilitychange', function() {
+  if (!protectionEnabled || editMode) return;
+  if (document.hidden) {
+    // 页面隐藏时闪烁水印提示
+    const watermark = document.getElementById('lightboxWatermark');
+    if (watermark) watermark.style.opacity = '0.3';
+    setTimeout(() => { if (watermark) watermark.style.opacity = '0.12'; }, 500);
+  }
+});
+
+// =============================================
+// INIT
+// =============================================
+updateAllTabCounts();
+loadSection('body');
+</script>
+</body>
+</html>
