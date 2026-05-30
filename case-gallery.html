@@ -645,40 +645,103 @@ const STORAGE_KEY = 'shuolinxuan_case_data';
 // DATA — localStorage first, then caseData.js fallback
 // =============================================
 function loadData() {
-  // 1. 从 cases-data.js 构建基准数据
-  const baseData = {};
-  Object.keys(sectionConfig).forEach(key => {
-    const cfg = sectionConfig[key];
-    if (window.caseData && window.caseData[cfg.dataKey]) {
-      baseData[key] = window.caseData[cfg.dataKey].items.map(function(it) { return { img: it.img, caption: it.caption }; });
-    } else {
-      baseData[key] = [];
+  console.log('[loadData] 开始加载数据...');
+
+  // 1. 始终从 cases-data.js 构建完整基准数据
+  function buildBaseData() {
+    const data = {};
+    Object.keys(sectionConfig).forEach(function(key) {
+      const cfg = sectionConfig[key];
+      if (window.caseData && window.caseData[cfg.dataKey] && Array.isArray(window.caseData[cfg.dataKey].items)) {
+        data[key] = window.caseData[cfg.dataKey].items.map(function(it) {
+          return { img: it.img, caption: it.caption };
+        });
+      } else {
+        data[key] = [];
+      }
+    });
+    return data;
+  }
+
+  var baseData = buildBaseData();
+  console.log('[loadData] cases-data.js 基准数据:', {
+    body: baseData.body.length,
+    store: baseData.store.length,
+    biz: baseData.biz.length,
+    ops: baseData.ops.length
+  });
+
+  // 2. 读取 localStorage
+  var stored = null;
+  try { stored = localStorage.getItem(STORAGE_KEY); } catch(e) {
+    console.warn('[loadData] localStorage 读取失败，回退到 cases-data.js:', e);
+    return baseData;
+  }
+
+  if (!stored) {
+    console.log('[loadData] localStorage 无数据，使用 cases-data.js 基准数据');
+    return baseData;
+  }
+
+  var storedData = null;
+  try { storedData = JSON.parse(stored); } catch(e) {
+    console.warn('[loadData] localStorage JSON 解析失败，回退到 cases-data.js:', e);
+    return baseData;
+  }
+
+  if (!storedData || typeof storedData !== 'object') {
+    console.warn('[loadData] localStorage 数据格式异常，回退到 cases-data.js');
+    return baseData;
+  }
+
+  // 3. 校验 localStorage 是否包含有效数据（至少一个板块有内容）
+  var hasValidData = false;
+  Object.keys(sectionConfig).forEach(function(key) {
+    var arr = storedData[key];
+    if (arr && Array.isArray(arr) && arr.length > 0) hasValidData = true;
+  });
+
+  if (!hasValidData) {
+    console.warn('[loadData] localStorage 数据全部为空，回退到 cases-data.js');
+    return baseData;
+  }
+
+  console.log('[loadData] localStorage 有效数据:', {
+    body: (storedData.body || []).length,
+    store: (storedData.store || []).length,
+    biz: (storedData.biz || []).length,
+    ops: (storedData.ops || []).length
+  });
+
+  // 4. 合并：补回 cases-data.js 中有、localStorage 中缺失的条目
+  Object.keys(sectionConfig).forEach(function(key) {
+    var storedItems = storedData[key];
+    if (!Array.isArray(storedItems)) { storedData[key] = []; storedItems = storedData[key]; }
+
+    var baseItems = baseData[key] || [];
+    if (baseItems.length === 0) return;
+
+    var storedCaptions = new Set();
+    storedItems.forEach(function(i) { if (i && i.caption) storedCaptions.add(i.caption); });
+
+    var addedCount = 0;
+    baseItems.forEach(function(item) {
+      if (item && item.caption && !storedCaptions.has(item.caption)) {
+        storedItems.push(item);
+        addedCount++;
+      }
+    });
+
+    if (addedCount > 0) {
+      console.log('[loadData] ' + sectionConfig[key].dataKey + ' 补回 ' + addedCount + ' 个案例');
     }
   });
 
-  // 2. 读取 localStorage 已有数据
-  const stored = localStorage.getItem(STORAGE_KEY);
-  let storedData = null;
-  if (stored) {
-    try { storedData = JSON.parse(stored); } catch(e) {}
-  }
-
-  if (!storedData) return baseData;
-
-  // 3. 合并：保留用户新增/删除/排序，补回 cases-data.js 中有、localStorage 中缺失的条目
-  Object.keys(sectionConfig).forEach(key => {
-    const storedItems = storedData[key] || [];
-    const baseItems = baseData[key] || [];
-    const storedCaptions = new Set(storedItems.map(function(i) { return i.caption; }));
-    let added = false;
-    // 反向遍历，把 baseData 独有的条目追加到末尾
-    for (var b = baseItems.length - 1; b >= 0; b--) {
-      if (!storedCaptions.has(baseItems[b].caption)) {
-        storedItems.unshift(baseItems[b]);
-        added = true;
-      }
-    }
-    if (added) storedData[key] = storedItems;
+  console.log('[loadData] 合并后数据:', {
+    body: (storedData.body || []).length,
+    store: (storedData.store || []).length,
+    biz: (storedData.biz || []).length,
+    ops: (storedData.ops || []).length
   });
 
   return storedData;
