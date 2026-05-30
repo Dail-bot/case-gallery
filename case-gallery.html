@@ -369,6 +369,84 @@
 
   .hint-text { font-size: 11px; color: var(--text-light); margin-top: -10px; margin-bottom: 14px; }
 
+  /* Upload Zone */
+  .upload-zone {
+    border: 2px dashed var(--gold); border-radius: 10px;
+    padding: 28px 16px; text-align: center; margin-bottom: 14px;
+    cursor: pointer; transition: all 0.25s;
+    background: var(--warm-white);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .upload-zone:hover, .upload-zone.drag-over { border-color: var(--dark-green); background: var(--light-gold); }
+  .upload-zone.has-image { padding: 8px; border-style: solid; }
+  .upload-icon { font-size: 28px; display: block; margin-bottom: 6px; }
+  .upload-label { font-size: 13px; color: var(--text-mid); }
+  .upload-sublabel { font-size: 11px; color: var(--text-light); margin-top: 4px; }
+  .upload-preview {
+    display: none; width: 100%; max-height: 180px; object-fit: contain;
+    border-radius: 8px; background: #f5f1e8;
+  }
+  .upload-preview.show { display: block; }
+  .upload-remove {
+    display: none; margin-top: 6px; font-size: 12px; color: var(--danger);
+    background: none; border: none; cursor: pointer; text-decoration: underline;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .upload-remove.show { display: inline-block; }
+  .storage-info { font-size: 11px; color: var(--text-light); margin-top: 6px; text-align: right; }
+
+  /* ===== Search Bar ===== */
+  .search-bar-wrapper {
+    padding: 10px 12px; background: #FFF;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .search-bar-inner {
+    flex: 1; display: flex; align-items: center; gap: 8px;
+    background: var(--warm-white); border: 1.5px solid var(--border);
+    border-radius: 24px; padding: 8px 14px; transition: border-color 0.25s;
+  }
+  .search-bar-inner:focus-within { border-color: var(--gold); }
+  .search-icon { font-size: 16px; color: var(--text-light); flex-shrink: 0; line-height: 1; }
+  .search-input {
+    flex: 1; border: none; outline: none; background: transparent;
+    font-size: 14px; color: var(--text-dark); font-family: inherit;
+    min-width: 0; -webkit-appearance: none;
+  }
+  .search-input::placeholder { color: var(--text-light); }
+  .search-clear {
+    display: none; width: 22px; height: 22px; border-radius: 50%;
+    background: var(--text-light); color: #FFF; border: none;
+    font-size: 12px; line-height: 22px; text-align: center;
+    cursor: pointer; flex-shrink: 0; -webkit-tap-highlight-color: transparent;
+    transition: background 0.2s;
+  }
+  .search-clear.visible { display: block; }
+  .search-clear:hover { background: var(--text-mid); }
+  .search-cancel {
+    display: none; font-size: 14px; color: var(--dark-green); font-weight: 500;
+    background: none; border: none; cursor: pointer; flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent; padding: 4px 0;
+  }
+  .search-cancel.visible { display: block; }
+  .search-results-header {
+    display: none; padding: 14px 12px 0; font-size: 14px; color: var(--text-mid);
+  }
+  .search-results-header.visible { display: block; }
+  .search-results-header .result-count { font-weight: 700; color: var(--dark-green); }
+  .search-results-header .result-keyword { color: var(--gold); font-weight: 600; }
+  .search-highlight {
+    background: rgba(201,168,76,0.25); padding: 0 2px; border-radius: 2px;
+    font-weight: 600; color: var(--dark-green);
+  }
+  .search-empty {
+    display: none; text-align: center; padding: 60px 20px; color: var(--text-light);
+  }
+  .search-empty.visible { display: block; }
+  .search-empty .empty-icon { font-size: 40px; margin-bottom: 12px; display: block; }
+  .search-empty .empty-text { font-size: 14px; }
+  .search-empty .empty-hint { font-size: 12px; margin-top: 6px; color: var(--text-light); }
+
   /* ===== Toast ===== */
   .toast {
     position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
@@ -397,6 +475,16 @@
   <div class="stat-item"><div class="stat-number">500+</div><div class="stat-label">轻创业者</div></div>
   <div class="stat-divider"></div>
   <div class="stat-item"><div class="stat-number">100+</div><div class="stat-label">操盘手</div></div>
+</div>
+
+<!-- ===== Search Bar ===== -->
+<div class="search-bar-wrapper" id="searchBarWrapper">
+  <div class="search-bar-inner">
+    <span class="search-icon">🔍</span>
+    <input type="text" class="search-input" id="searchInput" placeholder="搜索案例关键词，如：月经、汗蒸、小红书…" autocomplete="off">
+    <button class="search-clear" id="searchClear">✕</button>
+  </div>
+  <button class="search-cancel" id="searchCancel">取消</button>
 </div>
 
 <!-- ===== Tab Bar ===== -->
@@ -462,6 +550,19 @@
   </div>
 </div>
 
+<!-- ===== Search Results Section ===== -->
+<div class="section" id="section-search">
+  <div class="search-results-header" id="searchResultsHeader">
+    搜索 "<span class="result-keyword" id="searchKeywordDisplay"></span>"，找到 <span class="result-count" id="searchResultCount">0</span> 个相关案例
+  </div>
+  <div class="card-grid" id="grid-search"></div>
+  <div class="search-empty" id="searchEmpty">
+    <span class="empty-icon">🔍</span>
+    <span class="empty-text">没有找到匹配的案例</span>
+    <span class="empty-hint">试试其他关键词，如：调理、获客、小红书</span>
+  </div>
+</div>
+
 <!-- ===== Lightbox ===== -->
 <div class="lightbox-overlay" id="lightbox">
   <div class="lightbox-content">
@@ -492,6 +593,7 @@
 <div class="modal-overlay" id="addModal">
   <div class="modal-box">
     <h3>添加新案例</h3>
+
     <label>选择板块</label>
     <select id="addCategory">
       <option value="body">身体调理</option>
@@ -499,9 +601,18 @@
       <option value="biz">轻创业</option>
       <option value="ops">操盘手</option>
     </select>
-    <label>图片文件名</label>
-    <input type="text" id="addFilename" placeholder="例如：新案例截图.jpg">
-    <div class="hint-text">先把图片放到 images/对应板块/ 文件夹里，再填文件名</div>
+
+    <label>上传图片</label>
+    <div class="upload-zone" id="uploadZone">
+      <span class="upload-icon">📁</span>
+      <span class="upload-label">点击选择图片 或 拖拽图片到这里</span>
+      <span class="upload-sublabel">支持 JPG / PNG，建议尺寸不超过 2000px</span>
+    </div>
+    <img class="upload-preview" id="uploadPreview" alt="预览">
+    <button class="upload-remove" id="uploadRemove">移除图片</button>
+    <input type="file" id="uploadFileInput" accept="image/jpeg,image/png,image/jpg" style="display:none;">
+    <div class="storage-info" id="storageInfo"></div>
+
     <label>描述文字</label>
     <textarea id="addCaption" placeholder="输入图片的描述文字"></textarea>
     <div class="modal-actions">
@@ -588,13 +699,24 @@ function thumbPath(originalPath) {
 
 function getCardHTML(item, sectionKey, index) {
   const cfg = sectionConfig[sectionKey];
-  const thumb = thumbPath(item.img);
+  const uploadedImages = getUploadedImages();
+  const uploadData = uploadedImages[item.img];
+
+  let thumbSrc;
+  if (uploadData && uploadData.thumb) {
+    // 使用上传时生成的缩略图 data URL
+    thumbSrc = uploadData.thumb;
+  } else {
+    // 使用服务器缩略图路径
+    thumbSrc = encodeURI(thumbPath(item.img));
+  }
+
   return `
-    <div class="case-card" draggable="true" data-section="${sectionKey}" data-index="${index}" data-img="${encodeURI(item.img)}" data-caption="${escapeHTML(item.caption)}">
+    <div class="case-card" draggable="true" data-section="${sectionKey}" data-index="${index}" data-img="${encodeURI(item.img)}" data-caption="${escapeHTML(item.caption)}"${uploadData ? ' data-uploaded="1"' : ''}>
       <div class="drag-handle" title="拖拽排序">⋮⋮</div>
       <div class="card-image-wrap">
         <div class="skeleton-loader"></div>
-        <img src="" data-src="${encodeURI(thumb)}" alt="${escapeHTML(item.caption)}" loading="lazy">
+        <img src="" data-src="${thumbSrc}" alt="${escapeHTML(item.caption)}" loading="lazy">
         <div class="card-watermark-text">烁林煊</div>
       </div>
       <div class="card-caption">
@@ -698,6 +820,7 @@ function switchTab(sectionKey) {
 document.getElementById('tabBar').addEventListener('click', function(e) {
   const btn = e.target.closest('.tab-btn');
   if (!btn) return;
+  if (searchActive) exitSearchMode();
   switchTab(btn.dataset.tab);
 });
 
@@ -711,12 +834,236 @@ document.addEventListener('click', function(e) {
 });
 
 // =============================================
+// SEARCH ENGINE — 全局关键词搜索
+// =============================================
+let searchActive = false;
+let searchResultsData = []; // [{ sectionKey, item, globalIndex }]
+let searchKeyword = '';
+let lastActiveTab = 'body';
+
+const searchInput = document.getElementById('searchInput');
+const searchClear = document.getElementById('searchClear');
+const searchCancel = document.getElementById('searchCancel');
+const searchSection = document.getElementById('section-search');
+const searchGrid = document.getElementById('grid-search');
+const searchResultsHeader = document.getElementById('searchResultsHeader');
+const searchKeywordDisplay = document.getElementById('searchKeywordDisplay');
+const searchResultCount = document.getElementById('searchResultCount');
+const searchEmpty = document.getElementById('searchEmpty');
+
+// Debounce helper
+let searchTimer = null;
+function debounce(fn, delay) {
+  return function() {
+    const args = arguments;
+    const ctx = this;
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(function() { fn.apply(ctx, args); }, delay);
+  };
+}
+
+// 高亮关键词
+function highlightText(text, keyword) {
+  if (!keyword) return escapeHTML(text);
+  const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp('(' + escaped + ')', 'gi');
+  return escapeHTML(text).replace(regex, '<span class="search-highlight">$1</span>');
+}
+
+// 搜索卡片 HTML（含高亮 + 板块角标）
+function getSearchCardHTML(item, sectionKey, globalIndex, keyword) {
+  const cfg = sectionConfig[sectionKey];
+  const uploadedImages = getUploadedImages();
+  const uploadData = uploadedImages[item.img];
+
+  let thumbSrc;
+  if (uploadData && uploadData.thumb) {
+    thumbSrc = uploadData.thumb;
+  } else {
+    thumbSrc = encodeURI(thumbPath(item.img));
+  }
+
+  return '\n    <div class="case-card" data-section="' + sectionKey + '" data-index="' + globalIndex + '" data-img="' + encodeURI(item.img) + '" data-caption="' + escapeHTML(item.caption) + '"' + (uploadData ? ' data-uploaded="1"' : '') + '>\n      <div class="card-image-wrap">\n        <div class="skeleton-loader"></div>\n        <img src="" data-src="' + thumbSrc + '" alt="' + escapeHTML(item.caption) + '" loading="lazy">\n        <div class="card-watermark-text">烁林煊</div>\n      </div>\n      <div class="card-caption">\n        ' + highlightText(item.caption, keyword) + '\n      </div>\n    </div>\n  ';
+}
+
+// 渲染搜索结果
+function renderSearchResults() {
+  searchGrid.innerHTML = '';
+  searchEmpty.classList.remove('visible');
+
+  if (searchResultsData.length === 0) {
+    searchEmpty.classList.add('visible');
+    searchResultCount.textContent = '0';
+    searchResultsHeader.classList.add('visible');
+    searchKeywordDisplay.textContent = searchKeyword;
+    return;
+  }
+
+  searchResultsHeader.classList.add('visible');
+  searchKeywordDisplay.textContent = searchKeyword;
+  searchResultCount.textContent = String(searchResultsData.length);
+
+  let html = '';
+  searchResultsData.forEach(function(entry) {
+    html += getSearchCardHTML(entry.item, entry.sectionKey, entry.globalIndex, searchKeyword);
+  });
+  searchGrid.innerHTML = html;
+  // 触发懒加载
+  observeImages(searchGrid);
+}
+
+// 进入搜索模式
+function enterSearchMode() {
+  if (searchActive) return;
+  searchActive = true;
+  lastActiveTab = currentTab;
+
+  // 隐藏所有板块 section
+  document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('active'); });
+  // 显示搜索结果 section
+  searchSection.classList.add('active');
+
+  // 取消所有 tab 的 active
+  document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+
+  // 显示取消按钮
+  searchClear.classList.add('visible');
+  searchCancel.classList.add('visible');
+}
+
+// 退出搜索模式
+function exitSearchMode() {
+  if (!searchActive) return;
+  searchActive = false;
+  searchResultsData = [];
+  searchKeyword = '';
+  searchInput.value = '';
+  searchClear.classList.remove('visible');
+  searchCancel.classList.remove('visible');
+  searchGrid.innerHTML = '';
+  searchResultsHeader.classList.remove('visible');
+  searchEmpty.classList.remove('visible');
+
+  // 隐藏搜索结果 section
+  searchSection.classList.remove('active');
+
+  // 恢复之前激活的板块
+  switchTab(lastActiveTab);
+}
+
+// 执行搜索
+function doSearch(keyword) {
+  const kw = keyword.trim();
+  if (!kw) {
+    // 空关键词 → 退出搜索
+    exitSearchMode();
+    return;
+  }
+
+  searchKeyword = kw;
+  searchResultsData = [];
+
+  // 遍历所有板块
+  Object.keys(sectionConfig).forEach(function(sectionKey) {
+    const items = getItems(sectionKey);
+    items.forEach(function(item, idx) {
+      if (item.caption.toLowerCase().indexOf(kw.toLowerCase()) !== -1) {
+        searchResultsData.push({
+          sectionKey: sectionKey,
+          item: item,
+          globalIndex: idx
+        });
+      }
+    });
+  });
+
+  enterSearchMode();
+  renderSearchResults();
+}
+
+// 防抖搜索
+const debouncedSearch = debounce(function(e) {
+  doSearch(e.target.value);
+}, 300);
+
+searchInput.addEventListener('input', debouncedSearch);
+
+// 实时更新清除按钮可见性
+searchInput.addEventListener('input', function() {
+  if (searchInput.value.trim()) {
+    searchClear.classList.add('visible');
+  } else {
+    searchClear.classList.remove('visible');
+    exitSearchMode();
+  }
+});
+
+// 清除按钮
+searchClear.addEventListener('click', function() {
+  searchInput.value = '';
+  searchClear.classList.remove('visible');
+  exitSearchMode();
+  searchInput.focus();
+});
+
+// 取消按钮
+searchCancel.addEventListener('click', function() {
+  exitSearchMode();
+});
+
+// ESC 键退出搜索
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' && searchActive) {
+    exitSearchMode();
+    searchInput.blur();
+  }
+});
+
+// 搜索模式下点击卡片 → 打开灯箱
+document.addEventListener('click', function(e) {
+  if (editMode || !searchActive) return;
+  const card = e.target.closest('.case-card');
+  if (!card) return;
+  const sectionKey = card.dataset.section;
+  const index = parseInt(card.dataset.index);
+  if (isNaN(index) || index < 0 || index >= searchResultsData.length) return;
+
+  // 直接用搜索结果数据构建灯箱
+  const clickedEntry = searchResultsData[index];
+  if (!clickedEntry) return;
+  const items = getItems(clickedEntry.sectionKey);
+  const uploadedImages = getUploadedImages();
+  lightboxData = items.map(function(item) {
+    const uploadData = uploadedImages[item.img];
+    return {
+      img: uploadData ? uploadData.full : item.img,
+      caption: item.caption,
+      section: clickedEntry.sectionKey,
+      isUploaded: !!uploadData
+    };
+  });
+  lightboxIndex = clickedEntry.globalIndex;
+  showLightboxImage();
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+});
+
+// =============================================
 // LIGHTBOX
 // =============================================
 let lightboxIndex = -1;
 function openLightbox(sectionKey, index) {
   const items = getItems(sectionKey);
-  lightboxData = items.map(item => ({ img: item.img, caption: item.caption, section: sectionKey }));
+  const uploadedImages = getUploadedImages();
+  lightboxData = items.map(item => {
+    const uploadData = uploadedImages[item.img];
+    return {
+      img: uploadData ? uploadData.full : item.img,
+      caption: item.caption,
+      section: sectionKey,
+      isUploaded: !!uploadData
+    };
+  });
   lightboxIndex = index;
   showLightboxImage();
   document.getElementById('lightbox').classList.add('open');
@@ -869,10 +1216,15 @@ document.addEventListener('click', function(e) {
     const index = parseInt(delBtn.dataset.index);
     const items = getItems(sectionKey);
     if (!confirm('确定删除这个案例吗？\n\n' + items[index].caption)) return;
+    // 清理上传的图片数据
+    if (items[index].img && items[index].img.startsWith('uploaded/')) {
+      removeUploadedImage(items[index].img);
+    }
     items.splice(index, 1);
     setItems(sectionKey, items);
     refreshSection(sectionKey);
     showToast('已删除');
+    updateStorageInfo();
     return;
   }
 
@@ -881,7 +1233,7 @@ document.addEventListener('click', function(e) {
   if (addCard) {
     document.getElementById('addCategory').value = addCard.dataset.section;
     document.getElementById('addModal').classList.add('open');
-    document.getElementById('addFilename').focus();
+    updateStorageInfo();
   }
 });
 
@@ -1148,38 +1500,227 @@ document.addEventListener('touchend', function(e) {
   clearTouchDrag();
 });
 
+// ---- Upload Engine ----
+const UPLOADED_KEY = 'shuolinxuan_uploaded_images';
+
+function getUploadedImages() {
+  const stored = localStorage.getItem(UPLOADED_KEY);
+  return stored ? JSON.parse(stored) : {};
+}
+
+function saveUploadedImage(path, thumbDataUrl, fullDataUrl) {
+  const images = getUploadedImages();
+  images[path] = { thumb: thumbDataUrl, full: fullDataUrl };
+  try {
+    localStorage.setItem(UPLOADED_KEY, JSON.stringify(images));
+    return true;
+  } catch(e) {
+    return false;
+  }
+}
+
+function removeUploadedImage(path) {
+  const images = getUploadedImages();
+  delete images[path];
+  localStorage.setItem(UPLOADED_KEY, JSON.stringify(images));
+}
+
+function getLocalStorageUsageMB() {
+  let total = 0;
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    total += localStorage.getItem(key).length;
+  }
+  return (total / 1024 / 1024).toFixed(2);
+}
+
+function updateStorageInfo() {
+  const el = document.getElementById('storageInfo');
+  if (el) {
+    const usage = getLocalStorageUsageMB();
+    const uploaded = Object.keys(getUploadedImages()).length;
+    el.textContent = '已上传 ' + uploaded + ' 张图片 · 存储用量 ' + usage + ' MB（上限约5-10MB）';
+  }
+}
+
+// Generate thumbnail via Canvas
+function generateThumbnail(file, maxWidth) {
+  return new Promise(function(resolve, reject) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        const ratio = Math.min(maxWidth / img.width, 1);
+        canvas.width = img.width * ratio;
+        canvas.height = img.height * ratio;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', 0.65));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function readFileAsDataURL(file) {
+  return new Promise(function(resolve, reject) {
+    const reader = new FileReader();
+    reader.onload = function(e) { resolve(e.target.result); };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// Upload state for current modal session
+let pendingUploadFile = null;
+let pendingThumbDataUrl = '';
+let pendingFullDataUrl = '';
+
+function clearUploadState() {
+  pendingUploadFile = null;
+  pendingThumbDataUrl = '';
+  pendingFullDataUrl = '';
+  const zone = document.getElementById('uploadZone');
+  const preview = document.getElementById('uploadPreview');
+  const removeBtn = document.getElementById('uploadRemove');
+  if (zone) { zone.classList.remove('has-image'); zone.querySelector('.upload-icon').textContent = '📁'; }
+  if (preview) { preview.classList.remove('show'); preview.src = ''; }
+  if (removeBtn) removeBtn.classList.remove('show');
+  document.getElementById('uploadFileInput').value = '';
+  updateStorageInfo();
+}
+
+function setUploadPreview(dataUrl) {
+  const zone = document.getElementById('uploadZone');
+  const preview = document.getElementById('uploadPreview');
+  const removeBtn = document.getElementById('uploadRemove');
+  zone.classList.add('has-image');
+  zone.querySelector('.upload-icon').textContent = '✅';
+  preview.src = dataUrl;
+  preview.classList.add('show');
+  removeBtn.classList.add('show');
+}
+
+// Upload Zone Events
+document.getElementById('uploadZone').addEventListener('click', function() {
+  document.getElementById('uploadFileInput').click();
+});
+
+document.getElementById('uploadFileInput').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (file) handleFileSelect(file);
+});
+
+document.getElementById('uploadZone').addEventListener('dragover', function(e) {
+  e.preventDefault();
+  this.classList.add('drag-over');
+});
+
+document.getElementById('uploadZone').addEventListener('dragleave', function(e) {
+  this.classList.remove('drag-over');
+});
+
+document.getElementById('uploadZone').addEventListener('drop', function(e) {
+  e.preventDefault();
+  this.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) handleFileSelect(file);
+});
+
+document.getElementById('uploadRemove').addEventListener('click', function(e) {
+  e.stopPropagation();
+  clearUploadState();
+});
+
+async function handleFileSelect(file) {
+  if (!file.type.match(/image\/(jpeg|png)/)) {
+    showToast('仅支持 JPG 和 PNG 格式');
+    return;
+  }
+  if (file.size > 20 * 1024 * 1024) {
+    showToast('图片不能超过 20MB');
+    return;
+  }
+  try {
+    showToast('正在处理图片...');
+    pendingUploadFile = file;
+    pendingFullDataUrl = await readFileAsDataURL(file);
+    pendingThumbDataUrl = await generateThumbnail(file, 600);
+    setUploadPreview(pendingFullDataUrl);
+    updateStorageInfo();
+    showToast('图片就绪，请填写描述后确认添加');
+  } catch(err) {
+    showToast('图片处理失败，请重试');
+    clearUploadState();
+  }
+}
+
 // ---- Add Modal ----
 document.getElementById('modalCancel').addEventListener('click', function() {
   document.getElementById('addModal').classList.remove('open');
-  document.getElementById('addFilename').value = '';
   document.getElementById('addCaption').value = '';
+  clearUploadState();
 });
 
 document.getElementById('addModal').addEventListener('click', function(e) {
   if (e.target === this) {
     document.getElementById('addModal').classList.remove('open');
+    document.getElementById('addCaption').value = '';
+    clearUploadState();
   }
 });
 
-document.getElementById('modalSave').addEventListener('click', function() {
+document.getElementById('modalSave').addEventListener('click', async function() {
   const sectionKey = document.getElementById('addCategory').value;
-  const filename = document.getElementById('addFilename').value.trim();
   const caption = document.getElementById('addCaption').value.trim();
 
-  if (!filename) { showToast('请输入图片文件名'); return; }
   if (!caption) { showToast('请输入描述文字'); return; }
 
   const cfg = sectionConfig[sectionKey];
-  const imgPath = 'images/' + cfg.folder + '/' + filename;
+  let imgPath;
+  let useUpload = false;
+
+  if (pendingUploadFile && pendingThumbDataUrl && pendingFullDataUrl) {
+    // 使用上传的图片
+    const safeName = pendingUploadFile.name.replace(/[^a-zA-Z0-9\u4e00-\u9fa5._-]/g, '_');
+    imgPath = 'uploaded/' + cfg.folder + '/' + safeName;
+    useUpload = true;
+  } else {
+    showToast('请先上传一张图片');
+    return;
+  }
+
+  // Store uploaded image data
+  if (useUpload) {
+    const saved = saveUploadedImage(imgPath, pendingThumbDataUrl, pendingFullDataUrl);
+    if (!saved) {
+      showToast('存储空间不足！请先删除一些旧案例再添加');
+      return;
+    }
+  }
+
   const items = getItems(sectionKey);
-  items.push({ img: imgPath, caption: caption });
+  // 新案例添加到开头，立即可见
+  items.unshift({ img: imgPath, caption: caption });
   setItems(sectionKey, items);
   refreshSection(sectionKey);
 
   document.getElementById('addModal').classList.remove('open');
-  document.getElementById('addFilename').value = '';
   document.getElementById('addCaption').value = '';
-  showToast('已添加！');
+  clearUploadState();
+
+  // 切换到对应板块 + 滚动到顶部
+  switchTab(sectionKey);
+  setTimeout(function() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, 100);
+
+  showToast('已添加！案例显示在列表最前面');
+  updateStorageInfo();
 });
 
 // ---- Export ----
