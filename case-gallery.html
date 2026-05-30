@@ -645,25 +645,69 @@ const STORAGE_KEY = 'shuolinxuan_case_data';
 // DATA — localStorage first, then caseData.js fallback
 // =============================================
 function loadData() {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored) {
-    try { return JSON.parse(stored); } catch(e) {}
-  }
-  // Fallback to caseData from cases-data.js
-  const data = {};
+  // 1. 从 cases-data.js 构建基准数据
+  const baseData = {};
   Object.keys(sectionConfig).forEach(key => {
     const cfg = sectionConfig[key];
     if (window.caseData && window.caseData[cfg.dataKey]) {
-      data[key] = window.caseData[cfg.dataKey].items || [];
+      baseData[key] = window.caseData[cfg.dataKey].items.map(function(it) { return { img: it.img, caption: it.caption }; });
     } else {
-      data[key] = [];
+      baseData[key] = [];
     }
   });
-  return data;
+
+  // 2. 读取 localStorage 已有数据
+  const stored = localStorage.getItem(STORAGE_KEY);
+  let storedData = null;
+  if (stored) {
+    try { storedData = JSON.parse(stored); } catch(e) {}
+  }
+
+  if (!storedData) return baseData;
+
+  // 3. 合并：保留用户新增/删除/排序，补回 cases-data.js 中有、localStorage 中缺失的条目
+  Object.keys(sectionConfig).forEach(key => {
+    const storedItems = storedData[key] || [];
+    const baseItems = baseData[key] || [];
+    const storedCaptions = new Set(storedItems.map(function(i) { return i.caption; }));
+    let added = false;
+    // 反向遍历，把 baseData 独有的条目追加到末尾
+    for (var b = baseItems.length - 1; b >= 0; b--) {
+      if (!storedCaptions.has(baseItems[b].caption)) {
+        storedItems.unshift(baseItems[b]);
+        added = true;
+      }
+    }
+    if (added) storedData[key] = storedItems;
+  });
+
+  return storedData;
 }
 
 function saveData(data) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+// 物理重排 DOM 卡片并更新 data-index（不触发整页刷新，保留滚动位置）
+function reorderSectionDOM(sectionKey, fromIdx, toIdx) {
+  const gridEl = document.getElementById('grid-' + sectionKey);
+  if (!gridEl) return;
+  const cards = Array.from(gridEl.querySelectorAll('.case-card'));
+  const movedCard = cards[fromIdx];
+  if (!movedCard) return;
+
+  if (toIdx >= cards.length) {
+    gridEl.appendChild(movedCard);
+  } else if (toIdx < fromIdx) {
+    gridEl.insertBefore(movedCard, cards[toIdx]);
+  } else {
+    gridEl.insertBefore(movedCard, cards[toIdx + 1]);
+  }
+
+  // 刷新所有卡片 data-index
+  gridEl.querySelectorAll('.case-card').forEach(function(card, i) {
+    card.dataset.index = i;
+  });
 }
 
 let caseDataLocal = loadData();
@@ -1325,13 +1369,9 @@ document.addEventListener('drop', function(e) {
     const [moved] = items.splice(fromIdx, 1);
     items.splice(toIdx, 0, moved);
     setItems(sectionKey, items);
-    refreshSection(sectionKey);
-    showToast('排序已保存');
+    // 直接重排 DOM 卡片，保留滚动位置
+    reorderSectionDOM(sectionKey, fromIdx, toIdx);
   }
-
-  dragSource = null;
-  dragTargetIdx = -1;
-});
 
 document.addEventListener('dragend', function(e) {
   if (!dragSource) return;
@@ -1493,8 +1533,8 @@ document.addEventListener('touchend', function(e) {
     const [moved] = items.splice(fromIdx, 1);
     items.splice(toIdx, 0, moved);
     setItems(sectionKey, items);
-    refreshSection(sectionKey);
-    showToast('排序已保存');
+    // 直接重排 DOM 卡片，保留滚动位置
+    reorderSectionDOM(sectionKey, fromIdx, toIdx);
   }
 
   clearTouchDrag();
