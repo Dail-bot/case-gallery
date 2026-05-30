@@ -1036,7 +1036,7 @@ document.addEventListener('click', function(e) {
   lightboxData = items.map(function(item) {
     const uploadData = uploadedImages[item.img];
     return {
-      img: uploadData ? uploadData.full : item.img,
+      img: uploadData ? uploadData.medium : item.img,
       caption: item.caption,
       section: clickedEntry.sectionKey,
       isUploaded: !!uploadData
@@ -1058,7 +1058,7 @@ function openLightbox(sectionKey, index) {
   lightboxData = items.map(item => {
     const uploadData = uploadedImages[item.img];
     return {
-      img: uploadData ? uploadData.full : item.img,
+      img: uploadData ? uploadData.medium : item.img,
       caption: item.caption,
       section: sectionKey,
       isUploaded: !!uploadData
@@ -1508,9 +1508,9 @@ function getUploadedImages() {
   return stored ? JSON.parse(stored) : {};
 }
 
-function saveUploadedImage(path, thumbDataUrl, fullDataUrl) {
+function saveUploadedImage(path, thumbDataUrl, mediumDataUrl) {
   const images = getUploadedImages();
-  images[path] = { thumb: thumbDataUrl, full: fullDataUrl };
+  images[path] = { thumb: thumbDataUrl, medium: mediumDataUrl };
   try {
     localStorage.setItem(UPLOADED_KEY, JSON.stringify(images));
     return true;
@@ -1566,10 +1566,24 @@ function generateThumbnail(file, maxWidth) {
   });
 }
 
-function readFileAsDataURL(file) {
+// Generate medium image (for lightbox) — max 1200px, compressed JPEG
+function generateMediumImage(file, maxWidth) {
   return new Promise(function(resolve, reject) {
     const reader = new FileReader();
-    reader.onload = function(e) { resolve(e.target.result); };
+    reader.onload = function(e) {
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        const ratio = Math.min(maxWidth / img.width, 1);
+        canvas.width = img.width * ratio;
+        canvas.height = img.height * ratio;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', 0.55));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
@@ -1578,12 +1592,12 @@ function readFileAsDataURL(file) {
 // Upload state for current modal session
 let pendingUploadFile = null;
 let pendingThumbDataUrl = '';
-let pendingFullDataUrl = '';
+let pendingMediumDataUrl = '';
 
 function clearUploadState() {
   pendingUploadFile = null;
   pendingThumbDataUrl = '';
-  pendingFullDataUrl = '';
+  pendingMediumDataUrl = '';
   const zone = document.getElementById('uploadZone');
   const preview = document.getElementById('uploadPreview');
   const removeBtn = document.getElementById('uploadRemove');
@@ -1648,9 +1662,9 @@ async function handleFileSelect(file) {
   try {
     showToast('正在处理图片...');
     pendingUploadFile = file;
-    pendingFullDataUrl = await readFileAsDataURL(file);
+    pendingMediumDataUrl = await generateMediumImage(file, 1200);
     pendingThumbDataUrl = await generateThumbnail(file, 600);
-    setUploadPreview(pendingFullDataUrl);
+    setUploadPreview(pendingMediumDataUrl);
     updateStorageInfo();
     showToast('图片就绪，请填写描述后确认添加');
   } catch(err) {
@@ -1684,7 +1698,7 @@ document.getElementById('modalSave').addEventListener('click', async function() 
   let imgPath;
   let useUpload = false;
 
-  if (pendingUploadFile && pendingThumbDataUrl && pendingFullDataUrl) {
+  if (pendingUploadFile && pendingThumbDataUrl && pendingMediumDataUrl) {
     // 使用上传的图片
     const safeName = pendingUploadFile.name.replace(/[^a-zA-Z0-9\u4e00-\u9fa5._-]/g, '_');
     imgPath = 'uploaded/' + cfg.folder + '/' + safeName;
@@ -1696,7 +1710,7 @@ document.getElementById('modalSave').addEventListener('click', async function() 
 
   // Store uploaded image data
   if (useUpload) {
-    const saved = saveUploadedImage(imgPath, pendingThumbDataUrl, pendingFullDataUrl);
+    const saved = saveUploadedImage(imgPath, pendingThumbDataUrl, pendingMediumDataUrl);
     if (!saved) {
       showToast('存储空间不足！请先删除一些旧案例再添加');
       return;
